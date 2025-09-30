@@ -1,4 +1,4 @@
-**Research Report -- Common Network Security Threats**\
+**Research Report -- Common Network Security Threats**
 
 Summary:\
 This report explains three high-impact network security threats -- Denial of Service (DoS/DDoS), Man-in-the-Middle (MiTM) attacks, and Spoofing (IP/ARP/DNS/email).\
@@ -67,5 +67,75 @@ messages, or impersonate one side.\
 > DigiNotar CA compromise (2011): Fraudulent certificates were issued allowing nation-scale MiTM.\
 > Frequent real-world rogue Wi-Fi attacks where attackers capture login credentials from public Wi-Fi users.\
 **Mitigations & Defenses**\
-Network & Transport:\
-> 
+Network & Transport:
+> Enforce TLS everywhere; use HSTS and certificate pinning for critical apps.
+> Deploy DNSSEC where feasible; use validated resolvers (DoT/DoH) with trusted resolvers.
+LAN & Access
+> Use 802.1x, DHCP snooping, and dynamic ARP inspection on switches.
+> Use strong Wi-Fi (WPA/WPA3), disable open hotspots and WPS.
+Operational
+> Monitor certificate transparency logs and alert on unexpected certs.
+> Educate users about certificate warnings and rogue Wi-Fi risks.
+> Use endpoint EDR to detect credential theft or unusual process/network behaviour.
+**What is Spoofing (IP/ARP/DNS/Email)**
+> Spoofing is forging identity information (source IP, MAC address, DNS records, or email headers) to masquerade as another entity.
+**Common Spoofing types & how they work**
+> IP spoofing: Attacker sets source IP (used in reflection/amplification attacks or to bypass IP-based controls).
+> ARP spoofing: Attacker injects fake MAC-IP mappings on LAN to redirect traffic (used for MiTM).
+> DNS spoofing / cache poisoning: Attacker poisons DNS caches to return malicious IPs for legitimate domains.
+> Email spoofing: Forging from headers; used heavily in phishing.
+**Impact**
+> Enables DDoS amplification, bypasses IP filtering, aids lateral movement.
+> Leads to phishing, fraud, data theft, and trust erosion.
+**Detection Indicators**
+> Netflow showing many packets claiming to come from many different source IPs that do not respond to probes.
+> ARP table anomalies: Multiple IPs mapped to same MAC, or rapid ARP churn.
+> DNS records that diverge from authoritative data.
+> Email delivery failures flagged by SPF/DKIM/DMARC checks.
+**Some Real-World Examples**
+> Smurf attacks (historical): Broadcast amplification using spoofed source addresses.
+> Kaminsky DNS vulnerability (2008): Enabled practical cache poisoning attacks until patches.
+**Mitigations & Defenses (Network)**
+> Implement BCP38 / RFC 2827 (ingress filtering) to prevent packets with spoofed source addresses at network edges.
+> Use RPKI and ROV for BGP security to mitigate route hijacking.
+**DNS & Email (Mitigations & Defenses)**
+> Deploy DNSSEC and secure DNS operations; monitor DNS for unexpected changes.
+> Enforce SPF/DKIM/DMARC to reduce email spoofing and phishing.
+**Application & Poilcy (Mitigations & Defenses)**
+> Do not rely solely on source IP for authentication; use MFA and token-based authentication.
+> Harden systems and monitor logs for anomalies.
+**Detection, Monitoring and Incident Response (cross-cutting)**
+Log sources to collect
+> Network: NetFlow/IPFIX, firewall logs, IDS/IPS (Snort/Suricate), proxy logs.
+> Host: syslog, Windows Event Logs, EDR telemetry.
+> Application: Web Server access / error logs, database logs.
+> DNS logs and TLS certificate logs.
+**Detection Techniques**
+> Threshold & anomaly detection for traffic spikes (DDoS).
+> ARP/NDP anomaly detection and switch port security for MiTM / ARP spoofing.
+> DNS response integrity checks and certificate monitoring.
+> Use signature rules (Snort/Suricata) for known exploits and behavior-based detection for novel attacks.
+**Incident response steps (high-level)**
+> Identify -- confirm the event and scope (who, what, when).
+> Contain -- Isolate affected assets or apply mitigation (blackhole DDoS traffic, isolate compromised hosts).
+> Eradicate -- Remove mailcious artificats, close exploited vulnerabilites.
+> Recover -- Restore services and validate integrity.
+> Post-Incident -- Root cause analysis, update playbooks, apply lessons learned.
+**Recomend Controls & Best Practices (Summary checklist)**
+> Enforce TLS and strong cipher suites (HSTS, cert pinning where applicable).
+> Use CDNs & DDoS protection for public-facing services.
+> Deploy IDs/IPS (Snort/Suricata) + SIEM for correlation and alerting.
+> Harden perimeter: Firewalls, ingress filtering (BCP38), and strict ACLs.
+> Use MFA and avoid IP-only access controls.
+> Implement SPF/DKIM/DMARC and monitor DNS changes (DNSSEC where feasible).
+> Patch systems promptly; segment networks; remove unnecessary services.
+> Maintain incident response playbooks and perform tabletop exerciese.
+**Conclusion**
+> DoS/DDoS, MiTM and spoofing attacks target fundamental network properites-availability, confidentiality, and integrity. Effective defense requires layered controls: network design (CDNs, Anycast, ingress filtering), protocol protections (TLS, DNSSEC), host/network hardening, and operational readiness (SIEM, Incident playbooks). Combining prevention, detection, and response reduces risk and shortens mean time to recovery when incidents occur.
+**Appendix -- Useful Tools & Commands**
+> Network & Packet capture: tcpdump, wireshark
+> Flow analysis: ntop, NetFlow/IPFIX collectors.
+> IDS/IPS: Snort, Suricata
+> DDoS mitigation: Cloudflare, Akamai, AWS Shield
+> TLS/DNS monitoring: Certificate Tranaparency logs, dig, drill.
+> Log cenrtalization: ELK/Elastic, Splunk etc.
